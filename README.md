@@ -8,6 +8,7 @@
   ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
   ![Python: 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)
   ![Framework: Flask](https://img.shields.io/badge/framework-Flask-lightgrey.svg)
+  [![Documentation](https://img.shields.io/badge/Documentation-Wiki-blue)](documentacion/README.md)
 </div>
 
 Verificador de precios de medicamentos (**PVP oficial del Nomenclátor SNS**) y comparador de **parafarmacia** en farmacias online.
