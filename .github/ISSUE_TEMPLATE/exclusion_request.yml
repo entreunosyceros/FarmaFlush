@@ -9,7 +9,7 @@ body:
         FarmaFLUSH utiliza datos de acceso público para comparativas informativas de parafarmacia.
         Si eres titular de un establecimiento indexado, puedes solicitar su exclusión del motor de búsqueda.
 
-        Consulta también la sección **«Aviso para titulares de farmacias»** del [README](https://github.com/entreunosyceros/FarmaFlush#aviso-para-titulares-de-farmacias).
+        Consulta también [Titulares de farmacias](../documentacion/titulares-farmacias.md) en la documentación del proyecto.
 
   - type: input
     id: pharmacy_name

@@ -4,7 +4,7 @@
 
 ## Antes de empezar
 
-- Lee el [README](README.md) para entender las dos capas del producto: **verificador** (precio regulado) y **comparador** (mercado libre).
+- Lee el [README](README.md) y la [documentación](documentacion/README.md) para entender las dos capas del producto: **verificador** (precio regulado) y **comparador** (mercado libre).
 - Revisa las [issues abiertas](https://github.com/entreunosyceros/FarmaFlush/issues) por si alguien ya trabaja en lo mismo.
 - Consulta el [Código de conducta](CODE_OF_CONDUCT.md) para el comportamiento esperado en la comunidad.
 - Para vulnerabilidades, sigue [SECURITY.md](SECURITY.md) (no abras issues públicas con detalles de explotación).
