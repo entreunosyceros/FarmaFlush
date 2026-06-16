@@ -1,0 +1,499 @@
+{% if datos and datos.resultados %}
+<p><small>{{ datos.total }} resultados para <strong>{{ q }}</strong>{% if not datos.modo_todos %} (página {{ datos.pagina }}){% else %} (mostrando todos){% endif %}</small></p>
+
+<div class="card-grid">
+{% for med in datos.resultados %}
+    <article class="med-card">
+        {% if med.imagen_url %}
+        <img src="{{ med.imagen_url }}" alt="{{ med.nombre }}" loading="lazy">
+        {% endif %}
+
+        <h3>
+            <a href="/medicamento/{{ med.nregistro }}"
+               hx-get="/medicamento/{{ med.nregistro }}"
+               hx-target="#resultados"
+               hx-push-url="true">
+                {{ med.nombre }}
+            </a>
+            <button class="btn-fav"
+                    data-nregistro="{{ med.nregistro }}"
+                    title="Guardar en favoritos"
+                    aria-pressed="false">☆</button>
+        </h3>
+
+        <p style="margin:0.25rem 0;">
+            <small>{{ med.laboratorio }} · {{ med.forma }} · {{ med.dosis }}</small>
+        </p>
+
+        <p style="margin:0.25rem 0;">
+            {% if med.receta %}
+                <span class="badge badge-receta">Con receta</span>
+            {% else %}
+                <span class="badge badge-libre">Sin receta</span>
+            {% endif %}
+            {% if med.generico and 'EFG' in med.nombre|upper %}
+                <span class="badge badge-generico" title="Especialidad Farmacéutica Genérica">Genérico</span>
+            {% endif %}
+        </p>
+
+        {# Calcular precio mínimo global entre todas las fuentes.
+           _gmin.es_oficial=true solo cuando el mínimo proviene del Nomenclátor SNS,
+           único caso en que el PVP está legalmente intervenido. #}
+        {% set _gmin = namespace(val=none, fuente="", url=none, es_oficial=false) %}
+        {% if med.precio_oficial is not none %}
+            {% set _vad = med.fuentes_precio | selectattr("fuente", "eq", "vademecum") | list %}
+            {% set _gmin.val = med.precio_oficial %}
+            {% set _gmin.fuente = "Vademécum" if _vad else "SNS" %}
+            {% set _gmin.es_oficial = true %}
+        {% endif %}
+        {% if med.precio_medio is not none and (_gmin.val is none or med.precio_medio < _gmin.val) %}
+            {% set _gmin.val = med.precio_medio %}
+            {% set _gmin.fuente = "precio medio" %}
+            {% set _gmin.es_oficial = false %}
+        {% endif %}
+        {% for _o in (med.ofertas_farmacia or []) %}
+            {% if _o.precio is not none and (_gmin.val is none or _o.precio < _gmin.val) %}
+                {% set _gmin.val = _o.precio %}
+                {% set _gmin.fuente = _o.nombre_fuente %}
+                {% set _gmin.url = _o.url %}
+                {% set _gmin.es_oficial = false %}
+            {% endif %}
+        {% endfor %}
+
+        {% if _gmin.val is not none %}
+            <p class="precio-oficial" style="text-align:right;">
+                El precio más bajo encontrado es de:
+                {% if _gmin.url %}
+                    <strong><a href="{{ _gmin.url }}" target="_blank" rel="noopener noreferrer" style="color:inherit;">{{ "%.2f"|format(_gmin.val) }} €</a></strong>
+                {% else %}
+                    <strong>{{ "%.2f"|format(_gmin.val) }} €</strong>
+                {% endif %}
+                <small>({{ _gmin.fuente }})</small>
+            </p>
+
+            {% if precio_mostrador is defined and precio_mostrador is not none and precio_mostrador > 0 %}
+                {# TOLERANCIA: 0,05 € para cubrir redondeos e IVA #}
+                {% set _tolerancia = 0.05 %}
+                {% set _diff = precio_mostrador - _gmin.val %}
+                {% if _gmin.es_oficial %}
+                    {# Comparativa legal: el PVP SNS está intervenido #}
+                    {% if precio_mostrador <= _gmin.val + _tolerancia and precio_mostrador >= _gmin.val - _tolerancia %}
+                        <p class="comparativa-mostrador comparativa-precio-igual">
+                            ✅ El precio coincide con el PVP oficial registrado.
+                        </p>
+                    {% elif precio_mostrador < _gmin.val - _tolerancia %}
+                        {% set _diff_abs = (_gmin.val - precio_mostrador) %}
+                        <p class="comparativa-mostrador comparativa-buen-precio">
+                            ℹ️ El precio introducido es <strong>inferior al PVP oficial</strong> ({{ "%.2f"|format(_gmin.val) }} €).
+                            Diferencia: <strong>-{{ "%.2f"|format(_diff_abs) | replace(".", ",") }} €</strong>.
+                            Puede tratarse de un copago, descuento o formato distinto.
+                        </p>
+                    {% elif precio_mostrador > _gmin.val * 1.10 %}
+                        {% set _diff_abs = precio_mostrador - _gmin.val %}
+                        {% set _pct = ((_diff_abs / _gmin.val) * 100) | round(0) | int %}
+                        <p class="comparativa-mostrador comparativa-sobreprecio">
+                            🚨 El precio introducido supera el PVP oficial en un <strong>{{ _pct }}%</strong>
+                            (+{{ "%.2f"|format(_diff_abs) | replace(".", ",") }} €).
+                            Si el medicamento y formato coinciden exactamente, podría tratarse de un cobro incorrecto.
+                            <br><small>Verifica CN, dosis y número de unidades antes de reclamar.</small>
+                        </p>
+                    {% else %}
+                        {% set _diff_abs = precio_mostrador - _gmin.val %}
+                        <p class="comparativa-mostrador comparativa-sobreprecio">
+                            ⚠️ El precio introducido supera el PVP oficial registrado
+                            (+{{ "%.2f"|format(_diff_abs) | replace(".", ",") }} €).
+                            Verifica que el medicamento, dosis y número de unidades coinciden exactamente.
+                        </p>
+                    {% endif %}
+                {% else %}
+                    {# Comparativa informativa: precio de farmacia online, no regulado #}
+                    {% if _diff > 0.05 %}
+                        {% set _pct = ((_diff / _gmin.val) * 100) | round(0) | int %}
+                        <p class="comparativa-mostrador comparativa-sobreprecio">
+                            💰 Has pagado <strong>de más</strong>: +{{ "%.2f"|format(_diff) | replace(".", ",") }} €
+                            frente al mejor precio encontrado en {{ _gmin.fuente }} (<strong>{{ "%.2f"|format(_gmin.val) }} €</strong>).
+                        </p>
+                    {% elif _diff < -0.05 %}
+                        {% set _ahorro = (_diff | abs) %}
+                        <p class="comparativa-mostrador comparativa-buen-precio">
+                            ✅ Has pagado <strong>de menos</strong>: -{{ "%.2f"|format(_ahorro) | replace(".", ",") }} €
+                            respecto al mejor precio online encontrado.
+                        </p>
+                    {% else %}
+                        <p class="comparativa-mostrador comparativa-precio-igual">
+                            ✅ Precio similar al encontrado online.
+                        </p>
+                    {% endif %}
+                {% endif %}
+            {% endif %}
+        {% elif med.receta %}
+            <p><small class="text-muted" title="{{ med.tipo_prescripcion }}">💊 Medicamento con receta · Consulta el precio en tu farmacia o en el <a href="https://www.sanidad.gob.es/profesionales/nomenclator.do" target="_blank" rel="noopener">Nomenclátor del SNS</a></small></p>
+        {% else %}
+            <p><small class="text-muted">Precio no disponible en las fuentes consultadas</small></p>
+        {% endif %}
+
+        {% set ofertas_con_precio = med.ofertas_farmacia | selectattr("precio") | list %}
+        {% set ofertas_sin_resultado = med.ofertas_farmacia | selectattr("sin_resultado", "defined") | selectattr("sin_resultado") | list %}
+        {% if med.farmacias_aviso_fallback %}
+        <p style="margin:0.25rem 0; font-size:0.78em; color: var(--pico-muted-color);">
+            <small><strong>ℹ️</strong> {{ med.farmacias_aviso_fallback }}</small>
+        </p>
+        {% endif %}
+        {% if ofertas_con_precio %}
+        <p style="margin:0.25rem 0; font-size:0.8em; line-height:1.6;">
+            <small>
+            {% for oferta in ofertas_con_precio %}<a href="{{ oferta.url }}" target="_blank" rel="noopener noreferrer">{{ oferta.nombre_fuente }}{% if oferta.fuente_provincia %} ({{ oferta.fuente_provincia }}){% endif %}: {{ "%.2f"|format(oferta.precio) }} €</a>{% if not loop.last %} · {% endif %}{% endfor %}
+            </small>
+        </p>
+        {% endif %}
+        {% if ofertas_sin_resultado %}
+        <p style="margin:0.2rem 0; font-size:0.78em; color: var(--pico-muted-color);">
+            <small>No encontrado en: {% for o in ofertas_sin_resultado %}{{ o.nombre_fuente }}{% if o.fuente_provincia %} ({{ o.fuente_provincia }}){% endif %}{% if not loop.last %}, {% endif %}{% endfor %}</small>
+        </p>
+        {% endif %}
+
+        <p class="med-card-actions">
+            <a href="{{ med.vademecum_busqueda_url }}" target="_blank" rel="noopener">Buscar en Vademécum</a>
+        </p>
+    </article>
+{% endfor %}
+</div>
+
+{# --- Paginación --- #}
+{% set total_pags = (datos.total / datos.tam) | round(0, 'ceil') | int %}
+{% if total_pags > 1 and not datos.modo_todos %}
+<nav class="paginacion" aria-label="Paginacion de resultados">
+    {% if datos.pagina > 1 %}
+    <form action="/buscar" method="get"
+          {% if use_htmx|default(false) %}hx-get="/buscar/progresivo" hx-target="#resultados"{% endif %}
+          class="paginacion-form">
+        <input type="hidden" name="q" value="{{ q }}">
+        <input type="hidden" name="tam" value="{{ tam_query }}">
+        <input type="hidden" name="pagina" value="{{ datos.pagina - 1 }}">
+        {% if precio_mostrador is defined and precio_mostrador is not none %}<input type="hidden" name="precio_mostrador" value="{{ precio_mostrador }}">{% endif %}
+        <button type="submit" class="portal-button">← Anterior</button>
+    </form>
+    {% endif %}
+
+     <span class="paginacion-estado">{{ datos.pagina }} / {{ total_pags }}</span>
+
+    {% if datos.pagina < total_pags %}
+        <form action="/buscar" method="get"
+            {% if use_htmx|default(false) %}hx-get="/buscar/progresivo" hx-target="#resultados"{% endif %}
+            class="paginacion-form">
+        <input type="hidden" name="q" value="{{ q }}">
+        <input type="hidden" name="tam" value="{{ tam_query }}">
+        <input type="hidden" name="pagina" value="{{ datos.pagina + 1 }}">
+        {% if precio_mostrador is defined and precio_mostrador is not none %}<input type="hidden" name="precio_mostrador" value="{{ precio_mostrador }}">{% endif %}
+        <button type="submit" class="portal-button">Siguiente →</button>
+    </form>
+    {% endif %}
+</nav>
+{% endif %}
+
+{% else %}
+{% if coincidencias_nomenclator %}
+{% set _nom_unicos = namespace(items=[]) %}
+{% set _seen_nom = namespace(keys=[]) %}
+{% for item in coincidencias_nomenclator %}
+    {% set _key = (item.cn or item.nombre or item.url or '') %}
+    {% if _key and _key not in _seen_nom.keys %}
+        {% set _ = _seen_nom.keys.append(_key) %}
+        {% set _ = _nom_unicos.items.append(item) %}
+    {% endif %}
+{% endfor %}
+
+<section class="fuente-bloque fuente-bloque-oficial" aria-label="Resultados Nomenclátor SNS">
+    <header class="fuente-bloque-header">
+        <div class="fuente-bloque-titulos">
+            <div class="fuente-bloque-title-row">
+                <h2>🏛️ Nomenclátor SNS</h2>
+                <span class="fuente-pill fuente-pill-oficial">Fuente oficial</span>
+            </div>
+            <p>
+                Coincidencias para <mark class="fuente-mark">{{ q }}</mark>
+                <span class="fuente-bloque-sub">PVP máximo regulado por el Ministerio de Sanidad. Solo se listan coincidencias cuyo nombre contiene todos los términos relevantes de la búsqueda.</span>
+            </p>
+        </div>
+        <div class="fuente-bloque-meta" aria-label="Número de coincidencias">
+            <span class="fuente-count-pill">{{ _nom_unicos.items|length }}</span>
+            <span class="fuente-count-label">coincidencia{{ 's' if _nom_unicos.items|length != 1 else '' }}</span>
+        </div>
+    </header>
+
+    <div class="card-grid fuente-card-grid">
+    {% for item in _nom_unicos.items %}
+    <article class="med-card fuente-card fuente-card-oficial">
+        <div class="fuente-card-top">
+            <span class="fuente-card-badge fuente-card-badge-oficial">PVP oficial</span>
+            {% if item.estado %}
+            <span class="fuente-card-badge fuente-card-badge-estado">{{ item.estado }}</span>
+            {% endif %}
+        </div>
+        {% if item.imagen_url %}
+        <img src="{{ item.imagen_url }}" alt="{{ item.nombre }}" loading="lazy">
+        {% endif %}
+        <h3>
+            {% if item.nregistro %}
+            <a href="/medicamento/{{ item.nregistro }}?cn={{ item.cn }}">
+                {{ item.nombre }}
+            </a>
+            {% else %}
+            <a href="{{ item.url }}" target="_blank" rel="noopener">
+                {{ item.nombre }}
+            </a>
+            {% endif %}
+        </h3>
+        {% if item.cn %}
+        <p class="fuente-card-cn"><small>CN: <code>{{ item.cn }}</code></small></p>
+        {% endif %}
+
+        {% if item.precio is not none %}
+            <p class="precio-oficial">PVP oficial: {{ "%.2f"|format(item.precio) }} €</p>
+            {% if precio_mostrador is defined and precio_mostrador is not none and precio_mostrador > 0 %}
+                {% set _tolerancia = 0.05 %}
+                {% set _diff = precio_mostrador - item.precio %}
+                {% if precio_mostrador <= item.precio + _tolerancia and precio_mostrador >= item.precio - _tolerancia %}
+                    <p class="comparativa-mostrador comparativa-precio-igual">
+                        ✅ El precio coincide con el PVP oficial registrado.
+                    </p>
+                {% elif precio_mostrador < item.precio - _tolerancia %}
+                    {% set _ahorro = (item.precio - precio_mostrador) %}
+                    <p class="comparativa-mostrador comparativa-buen-precio">
+                        ℹ️ El precio introducido es <strong>inferior al PVP oficial</strong> ({{ "%.2f"|format(item.precio) }} €).
+                        Diferencia: <strong>-{{ "%.2f"|format(_ahorro) | replace(".", ",") }} €</strong>.
+                    </p>
+                {% elif precio_mostrador > item.precio * 1.10 %}
+                    {% set _pct = ((_diff / item.precio) * 100) | round(0) | int %}
+                    <p class="comparativa-mostrador comparativa-sobreprecio">
+                        🚨 El precio introducido supera el PVP oficial SNS en un <strong>{{ _pct }}%</strong>
+                        (+{{ "%.2f"|format(_diff) | replace(".", ",") }} €).
+                    </p>
+                {% else %}
+                    <p class="comparativa-mostrador comparativa-sobreprecio">
+                        ⚠️ El precio introducido supera el PVP oficial SNS
+                        (+{{ "%.2f"|format(_diff) | replace(".", ",") }} €).
+                    </p>
+                {% endif %}
+            {% endif %}
+        {% elif item.precio_ref is not none %}
+            <p class="precio-medio">Precio de referencia: {{ "%.2f"|format(item.precio_ref) }} €</p>
+        {% else %}
+            <p><small class="text-muted">Precio no disponible</small></p>
+        {% endif %}
+
+        <p class="med-card-actions fuente-card-actions">
+            {% if item.nregistro %}
+            <a href="/medicamento/{{ item.nregistro }}?cn={{ item.cn }}" class="portal-button">Ver ficha</a>
+            {% endif %}
+            <a href="{{ item.url }}" target="_blank" rel="noopener" class="portal-button portal-button-secondary">Nomenclátor ↗</a>
+        </p>
+    </article>
+    {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if coincidencias_vademecum %}
+{% set _vad_unicos = namespace(items=[]) %}
+{% set _seen_vad = namespace(keys=[]) %}
+{% for vm in coincidencias_vademecum %}
+    {% set _key = (vm.url or vm.titulo or vm.nregistro or '') %}
+    {% if _key and _key not in _seen_vad.keys %}
+        {% set _ = _seen_vad.keys.append(_key) %}
+        {% set _ = _vad_unicos.items.append(vm) %}
+    {% endif %}
+{% endfor %}
+
+<section class="fuente-bloque fuente-bloque-complementaria" aria-label="Resultados Vademécum">
+    <header class="fuente-bloque-header">
+        <div class="fuente-bloque-titulos">
+            <div class="fuente-bloque-title-row">
+                <h2>📘 Vademécum</h2>
+                <span class="fuente-pill fuente-pill-complementaria">Fuente complementaria</span>
+            </div>
+            <p>
+                Fichas para <mark class="fuente-mark">{{ q }}</mark>
+                <span class="fuente-bloque-sub">Información clínica y de referencia. No sustituye al PVP oficial del Nomenclátor.</span>
+            </p>
+        </div>
+        <div class="fuente-bloque-meta" aria-label="Número de fichas">
+            <span class="fuente-count-pill">{{ _vad_unicos.items|length }}</span>
+            <span class="fuente-count-label">ficha{{ 's' if _vad_unicos.items|length != 1 else '' }}</span>
+        </div>
+    </header>
+
+    <div class="card-grid fuente-card-grid">
+    {% for vm in _vad_unicos.items %}
+    <article class="med-card fuente-card fuente-card-complementaria">
+        <div class="fuente-card-top">
+            <span class="fuente-card-badge fuente-card-badge-complementaria">Complementario</span>
+        </div>
+        {% if vm.imagen_url %}
+        <img src="{{ vm.imagen_url }}" alt="{{ vm.titulo }}" loading="lazy">
+        {% endif %}
+        <h3>
+            {% if vm.nregistro %}
+            <a href="/medicamento/{{ vm.nregistro }}{% if vm.cn %}?cn={{ vm.cn }}{% endif %}">
+                {{ vm.titulo }}
+            </a>
+            {% else %}
+            <a href="/buscar?q={{ vm.titulo|urlencode }}">
+                {{ vm.titulo }}
+            </a>
+            {% endif %}
+        </h3>
+        {% if vm.cn %}
+        <p class="fuente-card-cn"><small>CN: <code>{{ vm.cn }}</code></small></p>
+        {% endif %}
+        <p class="med-card-actions fuente-card-actions">
+            {% if vm.nregistro %}
+            <a href="/medicamento/{{ vm.nregistro }}{% if vm.cn %}?cn={{ vm.cn }}{% endif %}" class="portal-button">Ver ficha</a>
+            {% else %}
+            <a href="/buscar?q={{ vm.titulo|urlencode }}" class="portal-button">Ver ficha</a>
+            {% endif %}
+            <a href="{{ vm.url }}" target="_blank" rel="noopener" class="portal-button portal-button-secondary">Vademécum ↗</a>
+        </p>
+    </article>
+    {% endfor %}
+    </div>
+</section>
+{% endif %}
+
+{% if productos_farmacia %}
+{% if filtro_activo %}
+<h2 style="text-align:center; margin:0 0 1.25rem;">Se han encontrado los siguientes productos destacados en la categoría: <mark style="padding:0.1rem 0.45rem; border-radius:999px; background:#fff3bf; color:#1f2937;">{{ q }}</mark></h2>
+{% else %}
+<h2 style="text-align:center; margin:0;">Otros productos que puedes comprar online para <mark style="padding:0.1rem 0.45rem; border-radius:999px; background:#fff3bf; color:#1f2937;">{{ q }}</mark>.</h2>
+<h3 style="text-align:center; margin:0.35rem 0 1.25rem;">Solo se muestran coincidencias donde el término aparece dentro del nombre del producto.</h3>
+{% endif %}
+
+<div class="card-grid">
+{% for prod in productos_farmacia %}
+    <article class="med-card">
+        {% if prod.imagen_url %}
+        <img src="{{ prod.imagen_url }}" alt="{{ prod.nombre }}" loading="lazy">
+        {% endif %}
+
+        <h3>
+            <a href="/parafarmacia/{{ prod.fuente }}/{{ prod.object_id }}"
+               hx-get="/parafarmacia/{{ prod.fuente }}/{{ prod.object_id }}"
+               hx-target="#resultados"
+               hx-push-url="true">
+                {{ prod.nombre }}
+            </a>
+        </h3>
+        {% if prod.marca %}
+        <p style="margin:0.25rem 0;"><small>{{ prod.marca }}</small></p>
+        {% endif %}
+
+        {% if prod.nombre_fuente %}
+        <p style="margin:0.25rem 0;"><small>Fuente: {{ prod.nombre_fuente }}</small></p>
+        {% endif %}
+
+        {% if prod.categoria_principal %}
+        <p style="margin:0.25rem 0;"><small>{{ prod.categoria_principal }}</small></p>
+        {% endif %}
+
+        {% if prod.descripcion %}
+        <p><small>{{ prod.descripcion }}</small></p>
+        {% endif %}
+
+        {% if prod.precio is not none %}
+            <p class="precio-medio">{{ "%.2f"|format(prod.precio) }} € <small>(farmacia online)</small></p>
+            {% if precio_mostrador is defined and precio_mostrador is not none and precio_mostrador > 0 %}
+                {# Parafarmacia no tiene precio regulado: solo comparativa informativa #}
+                {% set _diff = precio_mostrador - prod.precio %}
+                {% if _diff > 0.05 %}
+                    {% set _pct = ((_diff / prod.precio) * 100) | round(0) | int %}
+                    <p class="comparativa-mostrador comparativa-sobreprecio">
+                        💰 {{ prod.nombre_fuente }} lo tiene a <strong>{{ "%.2f"|format(prod.precio) }} €</strong>
+                        ({{ "%.2f"|format(_diff) | replace(".", ",") }} € menos).
+                    </p>
+                {% elif _diff < -0.05 %}
+                    <p class="comparativa-mostrador comparativa-buen-precio">
+                        ✅ Tu farmacia tiene un precio similar o mejor que esta oferta online.
+                    </p>
+                {% else %}
+                    <p class="comparativa-mostrador comparativa-precio-igual">
+                        ✅ Precio similar al encontrado online.
+                    </p>
+                {% endif %}
+            {% endif %}
+        {% else %}
+            <p><small class="text-muted">Precio no disponible</small></p>
+        {% endif %}
+
+        {% if prod.envio %}
+            <p style="margin:0.25rem 0;"><small>
+                {% if prod.envio.tiene_gastos_envio %}
+                    Tiene gastos de envío.
+                {% else %}
+                    Sin gastos de envío.
+                {% endif %}
+                {% if prod.envio.coste_envio_texto %}
+                    Coste: {{ prod.envio.coste_envio_texto }}.
+                {% endif %}
+                {% if prod.envio.envio_gratis_desde is not none %}
+                    Envío gratis desde {{ "%.2f"|format(prod.envio.envio_gratis_desde) }} €.
+                {% endif %}
+                {% if prod.envio.plazo_entrega %}
+                    Entrega {{ prod.envio.plazo_entrega }}.
+                {% endif %}
+            </small></p>
+        {% endif %}
+
+        <p class="med-card-actions">
+            <a href="{{ prod.url_venta or prod.url }}" target="_blank" rel="noopener">Ver producto en {{ prod.nombre_fuente }}</a>
+        </p>
+    </article>
+{% endfor %}
+</div>
+
+{# --- Paginación parafarmacia --- #}
+{% set pf_total = parafarmacia_total | default(0) %}
+{% set pf_pagina = parafarmacia_pagina | default(1) %}
+{% set pf_tam = datos.tam | default(25) %}
+{% set pf_total_pags = (pf_total / pf_tam) | round(0, 'ceil') | int if pf_tam else 0 %}
+{% if pf_total_pags > 1 %}
+<p style="text-align:center;"><small>{{ pf_total }} productos encontrados (página {{ pf_pagina }} de {{ pf_total_pags }})</small></p>
+<nav class="paginacion" aria-label="Paginacion de productos">
+    {% if pf_pagina > 1 %}
+    <form action="/buscar" method="get"
+          {% if use_htmx|default(false) %}hx-get="/buscar/progresivo" hx-target="#resultados"{% endif %}
+          class="paginacion-form">
+        <input type="hidden" name="q" value="{{ q }}">
+        <input type="hidden" name="tam" value="{{ tam_query }}">
+        <input type="hidden" name="pagina" value="{{ pf_pagina - 1 }}">
+        {% if precio_mostrador is defined and precio_mostrador is not none %}<input type="hidden" name="precio_mostrador" value="{{ precio_mostrador }}">{% endif %}
+        <button type="submit" class="portal-button">← Anterior</button>
+    </form>
+    {% endif %}
+
+    <span class="paginacion-estado">{{ pf_pagina }} / {{ pf_total_pags }}</span>
+
+    {% if pf_pagina < pf_total_pags %}
+    <form action="/buscar" method="get"
+          {% if use_htmx|default(false) %}hx-get="/buscar/progresivo" hx-target="#resultados"{% endif %}
+          class="paginacion-form">
+        <input type="hidden" name="q" value="{{ q }}">
+        <input type="hidden" name="tam" value="{{ tam_query }}">
+        <input type="hidden" name="pagina" value="{{ pf_pagina + 1 }}">
+        {% if precio_mostrador is defined and precio_mostrador is not none %}<input type="hidden" name="precio_mostrador" value="{{ precio_mostrador }}">{% endif %}
+        <button type="submit" class="portal-button">Siguiente →</button>
+    </form>
+    {% endif %}
+</nav>
+{% endif %}
+
+{% endif %}
+
+{% if mostrar_aviso_sin_coincidencias %}
+<h2 style="text-align:center; margin:0;">No hubo coincidencias para <mark style="padding:0.1rem 0.45rem; border-radius:999px; background:#fff3bf; color:#1f2937;">{{ q }}</mark>.</h2>
+<h3 style="text-align:center; margin:0.35rem 0 1.25rem;">No se encontraron resultados en CIMA, Nomenclátor ni Vademécum.</h3>
+<p style="text-align:center;">
+    ¿Buscas un producto de parafarmacia?
+    <a href="/parafarmacia/buscar?q={{ q }}" hx-get="/parafarmacia/buscar/progresivo?q={{ q }}" hx-target="#resultados" hx-push-url="/parafarmacia/buscar?q={{ q }}">Buscar en farmacias online →</a>
+</p>
+{% endif %}
+{% endif %}

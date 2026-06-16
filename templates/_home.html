@@ -1,0 +1,32 @@
+{% set use_htmx = true %}
+{% set show_branding = true %}
+{% include "_search_form.html" %}
+
+<a href="/verificar-precio" class="verificar-cta-banner">
+    <span class="verificar-cta-emoji">🏛️</span>
+    <span class="verificar-cta-texto">
+        <strong>Verificador de PVP Oficial — ¿Te cobran bien en la farmacia?</strong>
+        <small>Contrasta lo que te cobran contra el PVP máximo regulado por ley · Nomenclátor oficial del SNS</small>
+    </span>
+    <span class="verificar-cta-arrow">→</span>
+</a>
+
+<a href="/parafarmacia/buscar" class="verificar-cta-banner">
+    <span class="verificar-cta-emoji">💄</span>
+    <span class="verificar-cta-texto">
+        <strong>¿Buscas parafarmacia?</strong>
+        <small>Compara precios de cremas, vitaminas, higiene y cosmética en farmacias online</small>
+    </span>
+    <span class="verificar-cta-arrow">→</span>
+</a>
+
+<div id="resultados"></div>
+
+<p style="font-size:0.75rem;color:var(--pico-muted-color);margin:2rem auto 0;line-height:1.55;max-width:600px;border-top:1px solid var(--pico-muted-border-color);padding-top:0.75rem;text-align:center">
+    <strong>Aviso para titulares de farmacias:</strong>
+    FarmaFLUSH utiliza datos de acceso público para fomentar la transparencia de precios.
+    Si es usted titular de una farmacia indexada y desea que sus datos sean excluidos de futuras comparativas,
+    puede solicitar la baja abriendo una incidencia en nuestro repositorio oficial:
+    <a href="https://github.com/sapoclay/farmaflush/issues" target="_blank" rel="noopener">Solicitar exclusión vía GitHub Issues</a>.
+    <em>Se requiere una cuenta de GitHub para garantizar la trazabilidad de la solicitud.</em>
+</p>
