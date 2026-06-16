@@ -2,7 +2,9 @@
 
 ## Nuestro compromiso
 
-En interés de fomentar un ambiente abierto y acogedor, nosotros como contribuyentes y mantenedores nos comprometemos a hacer de la participación en nuestro proyecto y nuestra comunidad una experiencia libre de acoso para todos, independientemente de la edad, tamaño corporal, discapacidad visible o invisible, etnia, características sexuales, identidad y expresión de género, nivel de experiencia, educación, estatus socioeconómico, nacionalidad, apariencia personal, raza, religión o identidad y orientación sexual.
+En interés de fomentar un ambiente abierto y acogedor, nosotros como contribuyentes y mantenedores de **FarmaFLUSH** nos comprometemos a hacer de la participación en nuestro proyecto y nuestra comunidad una experiencia libre de acoso para todos, independientemente de la edad, tamaño corporal, discapacidad visible o invisible, etnia, características sexuales, identidad y expresión de género, nivel de experiencia, educación, estatus socioeconómico, nacionalidad, apariencia personal, raza, religión o identidad y orientación sexual.
+
+FarmaFLUSH trata temas de salud y precios de medicamentos. Pedimos un trato respetuoso, basado en hechos verificables y sin acusaciones personales hacia profesionales sanitarios, farmacias o terceros.
 
 ## Nuestros estándares
 
@@ -11,8 +13,9 @@ Ejemplos de comportamiento que contribuyen a crear un ambiente positivo:
 - Usar lenguaje acogedor e inclusivo
 - Respetar diferentes puntos de vista y experiencias
 - Aceptar críticas constructivas con elegancia
-- Centrarse en lo que es mejor para la comunidad
+- Centrarse en lo que es mejor para la comunidad y para los usuarios del proyecto
 - Mostrar empatía hacia otros miembros de la comunidad
+- Mantener un tono informativo en debates sobre precios, regulación o farmacias
 
 Ejemplos de comportamiento inaceptable:
 
@@ -20,6 +23,7 @@ Ejemplos de comportamiento inaceptable:
 - Comentarios despectivos o insultantes (trolling) y ataques personales o políticos
 - Acoso público o privado
 - Publicar información privada de otras personas, como una dirección física o electrónica, sin permiso explícito
+- Difundir datos médicos o tickets de compra de terceros sin su consentimiento
 - Otras conductas que razonablemente podrían considerarse inapropiadas en un entorno profesional
 
 ## Nuestras responsabilidades
@@ -30,11 +34,13 @@ Los mantenedores del proyecto tienen el derecho y la responsabilidad de eliminar
 
 ## Alcance
 
-Este Código de Conducta aplica tanto en espacios del proyecto como en espacios públicos cuando una persona representa al proyecto o a su comunidad. Ejemplos de representación incluyen usar una dirección de correo oficial del proyecto, publicar en redes sociales con una cuenta oficial o actuar como representante designado en un evento en línea o fuera de línea.
+Este Código de Conducta aplica tanto en espacios del proyecto (repositorio, issues, pull requests, discusiones) como en espacios públicos cuando una persona representa al proyecto o a su comunidad. Ejemplos de representación incluyen usar una dirección de correo oficial del proyecto, publicar en redes sociales con una cuenta oficial o actuar como representante designado en un evento en línea o fuera de línea.
 
 ## Aplicación
 
-Los casos de comportamiento abusivo, acosador o inaceptable pueden reportarse contactando al equipo del proyecto en [GitHub Issues](https://github.com/sapoclay/sudoraciones-propias/issues) indicando en el título «Conducta». Todas las quejas serán revisadas e investigadas y resultarán en una respuesta que se considere necesaria y apropiada a las circunstancias. El equipo del proyecto está obligado a mantener la confidencialidad respecto al informante de un incidente.
+Los casos de comportamiento abusivo, acosador o inaceptable pueden reportarse abriendo un issue en [GitHub](https://github.com/entreunosyceros/FarmaFlush/issues) con el título **«Conducta»** (sin incluir detalles sensibles en público si no es necesario). También puedes usar [GitHub Security Advisories](https://github.com/entreunosyceros/FarmaFlush/security/advisories) para comunicación privada cuando proceda.
+
+Todas las quejas serán revisadas e investigadas y resultarán en una respuesta que se considere necesaria y apropiada a las circunstancias. El equipo del proyecto está obligado a mantener la confidencialidad respecto al informante de un incidente.
 
 ## Atribución
 

@@ -1,0 +1,53 @@
+name: Solicitud de exclusión
+description: Para titulares de farmacias que desean dejar de indexarse en el comparador
+title: "Solicitud de Exclusión - "
+labels: ["exclusion", "legal"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        FarmaFLUSH utiliza datos de acceso público para comparativas informativas de parafarmacia.
+        Si eres titular de un establecimiento indexado, puedes solicitar su exclusión del motor de búsqueda.
+
+        Consulta también la sección **«Aviso para titulares de farmacias»** del [README](https://github.com/entreunosyceros/FarmaFlush#aviso-para-titulares-de-farmacias).
+
+  - type: input
+    id: pharmacy_name
+    attributes:
+      label: Nombre de la farmacia o comercio
+      placeholder: "Farmacia Ejemplo S.L."
+    validations:
+      required: true
+
+  - type: input
+    id: domain
+    attributes:
+      label: URL del dominio a excluir
+      description: Dominio principal del catálogo (ej. www.mifarmacia.es)
+      placeholder: "https://www.ejemplo-farmacia.es"
+    validations:
+      required: true
+
+  - type: textarea
+    id: proof
+    attributes:
+      label: Acreditación de titularidad
+      description: Breve explicación de tu relación con el establecimiento (sin datos sensibles innecesarios)
+      placeholder: "Soy administrador del dominio / responsable del e-commerce..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notas adicionales (opcional)
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: terms
+    attributes:
+      label: Confirmación
+      options:
+        - label: Confirmo que soy titular o represento al establecimiento indicado
+          required: true

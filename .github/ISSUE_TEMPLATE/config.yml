@@ -1,8 +1,11 @@
 blank_issues_enabled: false
 contact_links:
   - name: Guía de contribución
-    url: https://github.com/sapoclay/sudoraciones-propias/blob/main/CONTRIBUTING.md
+    url: https://github.com/entreunosyceros/FarmaFlush/blob/main/CONTRIBUTING.md
     about: Cómo reportar bugs, proponer mejoras y enviar pull requests.
   - name: Política de seguridad
-    url: https://github.com/sapoclay/sudoraciones-propias/security/policy
+    url: https://github.com/entreunosyceros/FarmaFlush/blob/main/SECURITY.md
     about: Reporta vulnerabilidades siguiendo SECURITY.md (no publiques detalles en issues abiertas).
+  - name: Solicitar exclusión (titulares de farmacia)
+    url: https://github.com/entreunosyceros/FarmaFlush/issues/new?template=exclusion_request.yml
+    about: Pide que tu establecimiento deje de indexarse en el comparador de parafarmacia.

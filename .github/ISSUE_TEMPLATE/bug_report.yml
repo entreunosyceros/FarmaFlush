@@ -1,5 +1,5 @@
 name: Informe de error
-description: Algo no funciona como debería
+description: Algo no funciona como debería en FarmaFLUSH
 title: "[Bug]: "
 labels: ["bug"]
 body:
@@ -7,18 +7,22 @@ body:
     attributes:
       value: |
         Gracias por reportar un error. Cuanta más información des, más fácil será reproducirlo.
+        No incluyas datos personales ni tickets de farmacia reales.
 
   - type: dropdown
     id: area
     attributes:
       label: Área afectada
       options:
-        - Plan de entrenamiento / sesión de hoy
-        - Calendario y progreso
-        - Estadísticas
-        - Biblioteca de ejercicios
-        - Nutrición / estimador de alimentos
-        - Instalación (.deb) o launcher
+        - Verificador PVP individual (/verificar-precio)
+        - Modo ticket / exportación PDF (/verificar-ticket)
+        - Búsqueda de medicamentos (resultados / ficha)
+        - Comparador parafarmacia (/parafarmacia)
+        - Scraper de farmacia online
+        - Matcher / coincidencias incorrectas
+        - Importación Nomenclátor / precios oficiales
+        - PWA / interfaz / HTMX
+        - Arranque (run_app.sh / run_app.bat)
         - Otro
     validations:
       required: true
@@ -26,9 +30,9 @@ body:
   - type: input
     id: version
     attributes:
-      label: Versión
-      description: Versión de la app o commit si ejecutas desde código fuente
-      placeholder: "1.4.0"
+      label: Versión o commit
+      description: Tag de release o hash de commit si ejecutas desde código fuente
+      placeholder: "main @ abc1234"
     validations:
       required: true
 
@@ -38,9 +42,10 @@ body:
       label: Pasos para reproducir
       description: Lista numerada de acciones hasta ver el fallo
       placeholder: |
-        1. Abrir pestaña Nutrición
-        2. Pulsar «Estimar macros automáticamente»
-        3. ...
+        1. Abrir /verificar-ticket
+        2. Introducir «ibuprofeno 600mg 20 comp.» con precio 3,20 €
+        3. Pulsar «Verificar ticket»
+        4. ...
     validations:
       required: true
 
@@ -62,7 +67,7 @@ body:
     id: logs
     attributes:
       label: Logs o capturas
-      description: Salida de `sudoraciones log`, traceback de Streamlit o capturas (sin datos personales)
+      description: Salida de consola, traceback o capturas (sin datos personales)
       render: shell
 
   - type: dropdown
@@ -70,8 +75,10 @@ body:
     attributes:
       label: Entorno
       options:
-        - Paquete .deb (sudoraciones)
-        - Código fuente (python3 run_app.py)
+        - Linux (run_app.sh)
+        - Windows (run_app.bat)
+        - Manual (python app.py)
+        - Producción (gunicorn / VPS)
         - No lo sé
     validations:
       required: true
@@ -81,6 +88,13 @@ body:
     attributes:
       label: Versión de Python (si aplica)
       placeholder: "3.12.x"
+
+  - type: input
+    id: scraper
+    attributes:
+      label: Farmacia online (si aplica)
+      description: Solo si el bug es de un scraper concreto
+      placeholder: "Dosfarma, Amazon.es, ..."
 
   - type: checkboxes
     id: terms

@@ -1,5 +1,5 @@
 name: Solicitud de mejora
-description: Proponer una nueva función o mejora
+description: Proponer una nueva función o mejora en FarmaFLUSH
 title: "[Feature]: "
 labels: ["enhancement"]
 body:
@@ -13,12 +13,15 @@ body:
     attributes:
       label: Área
       options:
-        - Entrenamiento / plan semanal
-        - Nutrición / estimador de alimentos
-        - Estadísticas e indicadores
-        - Biblioteca o vídeos
+        - Verificador PVP / modo ticket
+        - Búsqueda de medicamentos (CIMA, Nomenclátor, Vademécum)
+        - Comparador parafarmacia
+        - Scrapers / nuevas fuentes online
+        - Informe PDF / exportación
+        - Matcher / precisión de coincidencias
+        - PWA / accesibilidad / UX
         - Documentación
-        - Empaquetado / instalación
+        - Arranque / despliegue
         - Otro
     validations:
       required: true
@@ -27,7 +30,7 @@ body:
     id: problem
     attributes:
       label: ¿Qué problema o necesidad quieres resolver?
-      placeholder: "Ej.: No puedo ver de un vistazo qué ejercicios de pecho me faltan por probar."
+      placeholder: "Ej.: Tras verificar un ticket con 5 líneas, no puedo exportar un resumen para llevar al mostrador."
     validations:
       required: true
 

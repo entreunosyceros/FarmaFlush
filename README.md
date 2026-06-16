@@ -603,7 +603,7 @@ La información mostrada tiene carácter **orientativo**. Este proyecto no garan
 
 ***FarmaFLUSH*** **utiliza datos de acceso público** para fomentar la transparencia de precios. Si es usted titular de una farmacia indexada y desea que sus datos sean excluidos de futuras comparativas, puede solicitar la baja abriendo una incidencia en nuestro repositorio oficial:
 
-[Solicitar exclusión vía GitHub Issues](https://github.com/sapoclay/farmaflush/issues)
+[Solicitar exclusión vía GitHub Issues](https://github.com/entreunosyceros/FarmaFlush/issues)
 
 Para solicitar que dejen de indexarse los datos de un establecimiento, abra una Nueva Issue con el título "Solicitud de Exclusión - [Nombre de la Farmacia]" e incluya:
 
